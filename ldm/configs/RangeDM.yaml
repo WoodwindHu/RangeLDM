@@ -1,0 +1,55 @@
+output_dir: null  # The output directory where the model predictions and checkpoints will be written.
+train_batch_size: 8   # Batch size (per device) for the training dataloader.
+num_epochs: 100   
+gradient_accumulation_steps: 1   
+use_ema: True   # Whether to use Exponential Moving Average for the final model weights.
+learning_rate: 1e-4   
+lr_warmup_steps: 500   # Number of steps for the warmup in the lr scheduler.
+save_images_epochs: 1 # How often to save images during training.
+ddim: True
+ddpm_num_inference_steps: 50 
+block_out_channels: [128, 128, 256, 256, 512, 512]  # unet block out channels
+all_circonv: True
+pos_encoding: True
+model_config: 
+  sample_size: [1024, 64]
+  in_channels: 3
+  out_channels: 2
+  layers_per_block: 2
+  block_out_channels: [128, 128, 256, 256, 512, 512]
+  down_block_types: [ "DownBlock2D", "DownBlock2D", "DownBlock2D", "DownBlock2D", "AttnDownBlock2D", "DownBlock2D",]
+  up_block_types: [ "UpBlock2D", "AttnUpBlock2D", "UpBlock2D", "UpBlock2D", "UpBlock2D", "UpBlock2D",]
+
+# default parameters
+model_config_name_or_path: null  # The config of the UNet model to train, leave as None to use standard DDPM configuration.
+resolution: [1024, 64]  # The resolution for input images, all the images in the train/validation dataset will be resized to this resolution
+eval_batch_size: 16  # The number of images to generate for evaluation.
+dataloader_num_workers: 8  # The number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
+save_model_epochs: 10 # How often to save the model during training.
+lr_scheduler: cosine  # The scheduler type to use. Choose between ["linear", "cosine", "cosine_with_restarts", "polynomial", "constant", "constant_with_warmup"]
+adam_beta1: 0.95 # The beta1 parameter for the Adam optimizer.
+adam_beta2: 0.999 # The beta2 parameter for the Adam optimizer.
+adam_weight_decay: 1e-6 # Weight decay magnitude for the Adam optimizer.
+adam_epsilon: 1e-08 # Epsilon value for the Adam optimizer.
+ema_inv_gamma: 1.0 # The inverse gamma value for the EMA decay.
+ema_power: 0.75 # The power value for the EMA decay.
+ema_max_decay: 0.9999  # The maximum decay magnitude for EMA.
+push_to_hub: False # Whether or not to push the model to the Hub.
+hub_token: null # The token to use to push to the Model Hub.
+hub_model_id: null # The name of the repository to keep in sync with the local `output_dir`.
+hub_private_repo: False # Whether or not to create a private repository.
+logger: tensorboard  # Whether to use [tensorboard](https://www.tensorflow.org/tensorboard) or [wandb](https://www.wandb.ai) for experiment tracking and logging of model metrics and model checkpoints"
+logging_dir: logs  # [TensorBoard](https://www.tensorflow.org/tensorboard) log directory. Will default to output_dir/runs/**CURRENT_DATETIME_HOSTNAME***."
+local_rank: -1 # For distributed training: local_rank
+mixed_precision: 'no' # "no", "fp16", "bf16" Whether to use mixed precision. Choose between fp16 and bf16 (bfloat16). Bf16 requires PyTorch >= 1.10. and an Nvidia Ampere GPU.
+prediction_type: epsilon # "epsilon", "sample" Whether the model should predict the 'epsilon'/noise error or directly the reconstructed image 'x0'.
+ddpm_num_steps: 1000
+ddpm_beta_schedule: linear
+checkpointing_steps: 500   # Save a checkpoint of the training state every X updates. These checkpoints are only suitable for resuming  training using `--resume_from_checkpoint`.
+checkpoints_total_limit: 10  # Max number of checkpoints to store.
+resume_from_checkpoint: null # Whether training should be resumed from a previous checkpoint. Use a path saved by  `--checkpointing_steps`, or `"latest"` to automatically select the last available checkpoint.
+enable_xformers_memory_efficient_attention: False  # Whether or not to use xformers.
+with_vae: False
+vae_config: null 
+vae_checkpoint: null 
+snr_gamma: null  # SNR weighting gamma to be used if rebalancing the loss. Recommended value is 5.0. More details here: https://arxiv.org/abs/2303.09556.

@@ -1,0 +1,102 @@
+model:
+  base_learning_rate: 4.5e-6
+  target: sgm.models.autoencoder.AutoencodingEngine
+  params:
+    input_key: jpg
+    monitor: val/rec_loss
+
+    loss_config:
+      target: sgm.modules.autoencoding.losses.GeneralLPIPSWithDiscriminator
+      params:
+        disc_ndf: 4
+        disc_start: 200000
+        disc_weight: 0.5
+        disc_in_channels: 2
+        regularization_weights:
+          kl_loss: 0.000001
+        kitti: True
+        to_range_image:
+          target: sgm.data.nuscenes_range_image.point_cloud_to_range_image_nuScenes
+          params:
+            width: 1024
+            grid_sizes: [1, 512, 512, ]
+            pc_range: [-51.2, -51.2, -3., 51.2, 51.2, 1.]
+        wo_perceptual: True
+        perceptual_weight: 0.0
+        range_weight: 50
+
+    regularizer_config:
+      target: sgm.modules.autoencoding.regularizers.DiagonalGaussianRegularizer
+
+    encoder_config:
+      target: sgm.modules.diffusionmodules.model.Encoder
+      params:
+        attn_type: none
+        double_z: true
+        z_channels: 4
+        resolution: 256
+        in_channels: 2
+        out_ch: 2
+        ch: 64
+        ch_mult: [1, 2, 4]
+        num_res_blocks: 2
+        attn_resolutions: []
+        dropout: 0.0
+        act: silu
+        circular: True
+
+    decoder_config:
+      target: sgm.modules.diffusionmodules.model.Decoder
+      params:
+        attn_type: none
+        double_z: true
+        z_channels: 4
+        resolution: 256
+        in_channels: 2
+        out_ch: 2
+        ch: 64
+        ch_mult: [1, 2, 4]
+        num_res_blocks: 2
+        attn_resolutions: []
+        dropout: 0.0
+        act: silu
+        circular: True
+
+data:
+  target: sgm.data.nuscenes_range_image.nuScenesRangeLoader
+  params:
+    nuScenes_path: path_to_nuscenes
+    batch_size: 16
+    num_workers: 8
+
+
+lightning:
+  strategy:
+    target: pytorch_lightning.strategies.DDPStrategy
+    params:
+      find_unused_parameters: True
+
+  modelcheckpoint:
+    params:
+      every_n_train_steps: 1020
+
+  callbacks:
+    metrics_over_trainsteps_checkpoint:
+      params:
+        every_n_train_steps: 510
+
+    image_logger:
+      target: main.ImageLogger
+      params:
+        enable_autocast: False
+        batch_frequency: 1000
+        max_images: 8
+        increase_log_steps: True
+
+  trainer:
+    devices: 0,1,2,3,4,5,6,7
+    limit_val_batches: 50
+    benchmark: True
+    accumulate_grad_batches: 1
+    val_check_interval: 510
+    max_epochs: 1000
